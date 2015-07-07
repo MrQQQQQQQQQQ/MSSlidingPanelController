@@ -1,6 +1,6 @@
 //  MSSlidingPanelController.m
 //
-// Copyright © 2014-2015 Sebastien MICHOY and contributors.
+// Copyright (c) 2014 Sébastien MICHOY
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -26,7 +26,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #import "MSSlidingPanelController.h"
-
 #pragma mark - Macros
 
 #define MSSPStoryboardIDCenter  @"MSSPStoryboardIDCenter"
@@ -696,6 +695,10 @@ typedef NS_ENUM(NSUInteger, MSSPPanTouchLocation)
     if (length <= 0)
         length *= -1;
     
+    if (length <= 50) {
+        length = 50;
+    }
+    
     return (length / [self animationVelocity]);
 }
 
@@ -1025,6 +1028,12 @@ typedef NS_ENUM(NSUInteger, MSSPPanTouchLocation)
 {
     MSSPOpenGestureMode openGestureMode;
     
+//    NSLog(@"should");
+//    f
+//    if ([[touch.view.class description] isEqualToString:@"UITableViewCellContentView"]) {
+//        return (NO);
+//    }
+    
     if ([self sideDisplayed] == MSSPSideDisplayedLeft)
         return (([self leftPanelCloseGestureMode] & [self closeGestureModeWithGestureRecognizer:gestureRecognizer andTouch:touch]) > 0);
     else if ([self sideDisplayed] == MSSPSideDisplayedRight)
@@ -1194,35 +1203,54 @@ typedef NS_ENUM(NSUInteger, MSSPPanTouchLocation)
 {
     CGRect  newCenterViewFrame;
     CGFloat translationX;
-    
-    if ([panGestureRecognizer state] == UIGestureRecognizerStateBegan)
+    if ([panGestureRecognizer state] == UIGestureRecognizerStateBegan){
         [self setPanTranslation:CGPointZero];
+        self.previousSideDisplayed = [self sideDisplayed];
+    }
     
     translationX = [panGestureRecognizer translationInView:[self view]].x - [self panTranslation].x;
     [self setPanTranslation:[panGestureRecognizer translationInView:[self view]]];
     
     newCenterViewFrame = [[self centerView] frame];
     newCenterViewFrame.origin.x += translationX;
+    NSLog(@"translationX = %f",translationX);
     
     [self panGestureVerifyAuthorizationForNewCenterViewFrame:&newCenterViewFrame];
     [self adjustStatusBarColor];
     [[self centerView] setFrame:newCenterViewFrame];
-    
     if ([panGestureRecognizer state] == UIGestureRecognizerStateEnded)
     {
+
         if ([self sideDisplayed] == MSSPSideDisplayedLeft)
         {
-            if ([[self centerView] frame].origin.x <= [self leftPanelMaximumWidth] / 2)
-                [self closePanel];
-            else
-                [self openLeftPanel];
+            if (self.previousSideDisplayed == MSSPSideDisplayedNone) {  //当前状态为侧菜单没有打开
+                if (newCenterViewFrame.origin.x <= [self openPanelMininumWidth])  //当 位移 大于 设定的最小值时，就打开，否则保持关闭
+                    [self closePanel];
+                else
+                    [self openLeftPanel];
+            }else if (self.previousSideDisplayed == MSSPSideDisplayedLeft){  //当前状态为左侧菜单打开
+                if (([self leftPanelMaximumWidth] - newCenterViewFrame.origin.x) <= [self openPanelMininumWidth])//当 位移 大于 设定的最小值时，就关闭，否则保持打开
+                    [self openLeftPanel];
+                else
+                    [self closePanel];
+            }
+            
         }
         else if ([self sideDisplayed] == MSSPSideDisplayedRight)
         {
-            if ([[self centerView] frame].origin.x >= - (NSInteger)[self rightPanelMaximumWidth] / 2)
-                [self closePanel];
-            else
-                [self openRightPanel];
+            
+            if (self.previousSideDisplayed == MSSPSideDisplayedNone) {
+                if (fabs(newCenterViewFrame.origin.x) <= [self openPanelMininumWidth])
+                    [self closePanel];
+                else
+                    [self openRightPanel];
+            }else if (self.previousSideDisplayed == MSSPSideDisplayedRight){
+                if ((fabs([self rightPanelMaximumWidth]) - fabs(newCenterViewFrame.origin.x)) <= [self openPanelMininumWidth])
+                    [self openRightPanel];
+                else
+                    [self closePanel];
+            }
+        
         }
         else
             [self closePanel];
@@ -1524,7 +1552,7 @@ typedef NS_ENUM(NSUInteger, MSSPPanTouchLocation)
             
             if (side == MSSPSideDisplayedRight)
                 frame.origin.x = [[self centerView] frame].size.width - [self panelMaximumWithForSide:side];
-                
+            
             [[panelController view] setFrame:frame];
         }
         
@@ -1591,6 +1619,7 @@ typedef NS_ENUM(NSUInteger, MSSPPanTouchLocation)
 {
     [self openPanelSide:MSSPSideDisplayedRight withCompletion:completion];
 }
+
 
 #pragma mark Storyboard
 /** @name Storyboard */

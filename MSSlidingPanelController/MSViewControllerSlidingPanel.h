@@ -1,6 +1,6 @@
 //  MSViewControllerSlidingPanel.h
 //
-// Copyright © 2014-2015 Sebastien MICHOY and contributors.
+// Copyright (c) 2014 Sébastien MICHOY
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:

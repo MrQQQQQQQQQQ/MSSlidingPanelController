@@ -1,6 +1,6 @@
 //  MSSlidingPanelController.h
 //
-// Copyright © 2014-2015 Sebastien MICHOY and contributors.
+// Copyright (c) 2014 Sébastien MICHOY
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -239,6 +239,10 @@ typedef NS_ENUM(NSUInteger, MSSPSideDisplayed)
  */
 @property (nonatomic, assign)           CGFloat                                 leftPanelMaximumWidth;
 
+
+@property (nonatomic,assign)            CGFloat                                 openPanelMininumWidth;
+
+
 /**
  *  The gestures which allow to open the left panel.
  *
@@ -350,6 +354,8 @@ typedef NS_ENUM(NSUInteger, MSSPSideDisplayed)
  *  Which panel is displayed.
  */
 @property (nonatomic, assign, readonly) MSSPSideDisplayed                       sideDisplayed;
+
+@property (nonatomic, assign)           MSSPSideDisplayed                       previousSideDisplayed;
 
 #pragma mark Actions
 /** @name Actions */
